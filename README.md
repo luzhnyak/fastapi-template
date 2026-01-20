@@ -17,7 +17,7 @@ Follow these steps to install and run the application:
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/luzhnyak/fastapi-template
-cd meduzzen_internship_backend
+cd fastapi-template
 ```
 
 ### 2. Create and activate a virtual environment
@@ -43,6 +43,13 @@ source venv/bin/activate
 Run the following command to install the required Python packages:
 ```bash
 pip install -r requirements.txt
+```
+
+### 3. Save dependencies
+
+Run the following command to save the required Python packages:
+```bash
+pip freeze > requirements.txt
 ```
 
 ### 4. Create a .env file in the project root

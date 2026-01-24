@@ -59,7 +59,7 @@ Create a `.env` file based on `.env.sample` and update the values as needed.
 # 🚀 Run the application
 Once the dependencies are installed, you can run the application:
 ```bash
-python app/main.py
+python -m app.main
 ```
 
 # Docker

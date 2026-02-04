@@ -1,21 +1,15 @@
 import os
+from pathlib import Path
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class PostgresSettings(BaseSettings):
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_DB: str
-    POSTGRES_PORT: int = 5432
-    POSTGRES_HOST: str = "localhost"
+class DBSettings(BaseSettings):
+    SQLITE_DB_PATH: str = "db.sqlite3"
 
     @property
     def DATABASE_URL(self) -> str:
-        return (
-            f"postgresql+asyncpg://"
-            f"{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
-            f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
-        )
+        db_path = Path(self.SQLITE_DB_PATH).absolute()
+        return f"sqlite+aiosqlite:///{db_path}"
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 
@@ -41,7 +35,7 @@ class AppSettings(BaseSettings):
 
 class Settings(BaseSettings):
     app: AppSettings = AppSettings()
-    postgres: PostgresSettings = PostgresSettings()
+    db: DBSettings = DBSettings()
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 

@@ -7,9 +7,7 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
-engine = create_async_engine(
-    settings.postgres.DATABASE_URL, echo=False, pool_pre_ping=True
-)
+engine = create_async_engine(settings.db.DATABASE_URL, echo=False, pool_pre_ping=True)
 
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 

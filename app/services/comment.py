@@ -13,16 +13,15 @@ from app.domain.entities.comment import (
     CommentList,
     Comment,
 )
-from app.infrastructure.repositories.sqlalchemy.place import PlaceRepository
+
 from app.schemas.comment import CommentCreateRequest, CommentUpdateRequest
 from app.services.base import BaseService
 
 
 class CommentService(BaseService):
 
-    def __init__(self, comment_repo: CommentRepository, place_repo: PlaceRepository):
+    def __init__(self, comment_repo: CommentRepository):
         self.comment_repo = comment_repo
-        self.place_repo = place_repo
 
     async def create_comment(
         self, data: CommentCreateRequest, current_user_id: int

@@ -25,57 +25,6 @@ from app.services.post import PostService
 from app.services.user import UserService
 
 
-def get_fish_repository(
-    session: AsyncSession = Depends(get_db),
-):
-    return SQLAlchemyFishRepository(session)
-
-
-def get_fish_slug_repository(
-    session: AsyncSession = Depends(get_db),
-):
-    return SQLAlchemyFishSlugRepository(session)
-
-
-def get_fish_service(
-    fish_repo=Depends(get_fish_repository),
-    fish_slug_repo=Depends(get_fish_slug_repository),
-):
-    return FishService(fish_repo, fish_slug_repo)
-
-
-def get_river_repository(
-    session: AsyncSession = Depends(get_db),
-):
-    return SQLAlchemyRiverRepository(session)
-
-
-def get_river_service(
-    river_repo=Depends(get_river_repository),
-):
-    return RiverService(river_repo)
-
-
-def get_place_repository(
-    session: AsyncSession = Depends(get_db),
-):
-    return SQLAlchemyPlaceRepository(session)
-
-
-def get_place_service(place_repo=Depends(get_place_repository)) -> PlaceService:
-    return PlaceService(place_repo)
-
-
-def get_blog_repository(
-    session: AsyncSession = Depends(get_db),
-):
-    return SQLAlchemyBlogRepository(session)
-
-
-def get_blog_service(blog_repo=Depends(get_blog_repository)) -> BlogService:
-    return BlogService(blog_repo)
-
-
 def get_post_repository(
     session: AsyncSession = Depends(get_db),
 ):
@@ -94,33 +43,8 @@ def get_comment_repository(
 
 def get_comment_service(
     comment_repo=Depends(get_comment_repository),
-    place_repo=Depends(get_place_repository),
 ):
-    return CommentService(comment_repo, place_repo)
-
-
-def get_main_repository(
-    session: AsyncSession = Depends(get_db),
-):
-    return SQLAlchemyMainRepository(session)
-
-
-def get_main_service(
-    main_repo=Depends(get_main_repository),
-    blog_service=Depends(get_blog_service),
-    fish_service=Depends(get_fish_service),
-    river_service=Depends(get_river_service),
-    post_service=Depends(get_post_service),
-    place_service=Depends(get_place_service),
-):
-    return MainService(
-        main_repo,
-        blog_service,
-        fish_service,
-        river_service,
-        post_service,
-        place_service,
-    )
+    return CommentService(comment_repo)
 
 
 auth_token_schemas = HTTPBearer()
@@ -162,16 +86,3 @@ async def get_current_user(
         raise UnauthorizedException(detail="Invalid token")
     except Exception as e:
         raise ServerException(detail=str(e))
-
-
-def get_rating_repository(
-    session: AsyncSession = Depends(get_db),
-):
-    return SQLAlchemyRatingRepository(session)
-
-
-def get_rating_service(
-    rating_repo=Depends(get_rating_repository),
-    place_service=Depends(get_place_service),
-) -> RatingService:
-    return RatingService(rating_repo, place_service)

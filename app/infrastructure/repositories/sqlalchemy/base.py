@@ -40,7 +40,7 @@ class SQLAlchemyRepository(Generic[Model, Entity]):
         return [self.mapper.to_entity(row) for row in res.scalars().all()]
 
     async def edit_one(self, id: int, data: dict) -> Entity:
-        stmt = update(self.model).values(**data).filter_by(id=id).returning(*self.model)
+        stmt = update(self.model).values(**data).filter_by(id=id).returning(self.model)
         res = await self.session.execute(stmt)
         model = res.scalar_one()
         return self.mapper.to_entity(model)
@@ -95,24 +95,6 @@ class SQLAlchemyRepository(Generic[Model, Entity]):
         models = res.scalars().all()
 
         return [self.mapper.to_entity(m) for m in models]
-
-    async def update(self, id: int, entity: Entity) -> Optional[Entity]:
-        data = self.mapper.to_model_dict(entity)
-
-        stmt = (
-            update(self.model)
-            .where(self.model.id == id)
-            .values(**data)
-            .returning(self.model)
-        )
-
-        res = await self.session.execute(stmt)
-        model = res.scalar_one_or_none()
-
-        if not model:
-            return None
-
-        return self.mapper.to_entity(model)
 
     async def find_all(self, **filter_by):
         stmt = select(self.model).filter_by(**filter_by)

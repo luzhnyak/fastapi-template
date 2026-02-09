@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Table, Column, Integer, String, Text, ForeignKey
 
-from app.infrastructure.db.database import Base
+from app.infrastructure.db.base import Base
 from app.infrastructure.models.base_model import ArticlesBaseModel
 from app.infrastructure.models.base_model import BaseModel
 

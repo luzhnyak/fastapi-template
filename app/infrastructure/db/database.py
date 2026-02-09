@@ -5,14 +5,14 @@ from sqlalchemy.exc import SQLAlchemyError
 import logging
 from app.core.config import settings
 
+from app.infrastructure.db.base import Base
+from app.infrastructure.models import user, post, comment
+
 logger = logging.getLogger(__name__)
 
-engine = create_async_engine(settings.db.DATABASE_URL, echo=False, pool_pre_ping=True)
+engine = create_async_engine(settings.db.DATABASE_URL, echo=False)
 
 async_session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
-
-
-Base = declarative_base()
 
 
 async def get_db():
@@ -29,5 +29,6 @@ async def get_db():
 
 
 async def init_db():
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

@@ -18,7 +18,7 @@ from app.services.auth import AuthService
 
 from app.services.comment import CommentService
 
-from app.infrastructure.database import get_db
+from app.infrastructure.db.database import get_db
 
 from app.services.post import PostService
 

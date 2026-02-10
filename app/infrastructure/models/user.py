@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import String, Integer, Boolean
+from sqlalchemy import String, Boolean
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infrastructure.models.base_model import BaseModel
@@ -14,13 +14,9 @@ class UserModel(BaseModel):
     password: Mapped[str] = mapped_column(String)
     email: Mapped[str] = mapped_column(String, unique=True)
     lastvisit_date: Mapped[Optional[str]] = mapped_column(String)
-    register_date: Mapped[Optional[str]] = mapped_column(String)
-    fb_id: Mapped[Optional[str]] = mapped_column(String)
-    tg_id: Mapped[Optional[int]] = mapped_column(Integer)
-    tg_username: Mapped[Optional[str]] = mapped_column(String)
-    google_id: Mapped[Optional[str]] = mapped_column(String)
-    role_id: Mapped[int] = mapped_column(Integer, default=3)
-    image: Mapped[Optional[str]] = mapped_column(String)
-    ip: Mapped[Optional[str]] = mapped_column(String)
-    ban: Mapped[bool] = mapped_column(Boolean, default=False)
-    token: Mapped[Optional[str]] = mapped_column(String)
+    role: Mapped[str] = mapped_column(String, default="user")
+    avatar: Mapped[Optional[str]] = mapped_column(String)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+    posts: Mapped[list["PostModel"]] = relationship("PostModel", back_populates="user")  # type: ignore
+    comments: Mapped[list["CommentModel"]] = relationship("CommentModel", back_populates="user")  # type: ignore

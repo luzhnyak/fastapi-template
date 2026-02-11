@@ -2,23 +2,18 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 
-from app.domain.entities.user import User, UserMinimal
+from app.domain.entities.user import User
 
 
 @dataclass
 class Comment:
     id: int
-    article_id: int
-    comment: str
-    table_name: str
+    post_id: int
+    content: str
     user_id: int
     created_at: datetime
     updated_at: datetime
-    user: UserMinimal | None = None
-
-    @property
-    def text(self) -> str:
-        return self.comment
+    user: User
 
 
 @dataclass

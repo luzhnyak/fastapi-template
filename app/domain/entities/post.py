@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
-from app.domain.entities.base_article import BaseArticle
+from app.utils.strip_tags_and_trim import strip_tags_and_trim
 
 
 @dataclass
@@ -16,39 +17,26 @@ class Category:
     id: int
     slug: str
     name: str
-    icon: str = "icon-folder"
-
-    @property
-    def image(self):
-        return f"/static/img/category/resize/{self.slug}.jpg"
-
-    @property
-    def path(self):
-        return "posts/?category="
 
 
-@dataclass
-class Post(BaseArticle):
+@dataclass(kw_only=True)
+class Post:
     id: int
+    name: str
+    slug: str
+    content: str
+    created_at: datetime
+    updated_at: datetime
+    image: Optional[str] = None
+    video: Optional[str] = None
+    user_id: int | None = None
+
     stats: PostStats
-    user_id: int | None
     categories: List[Category]
 
     @property
-    def icon(self):
-        return "icon-file-alt"
-
-    @property
-    def path(self):
-        return "posts"
-
-    @property
-    def path_name(self):
-        return "Публікації про риболовлю"
-
-    @property
-    def maket(self):
-        return "IMAGE_BOTTOM"
+    def description(self) -> str:
+        return strip_tags_and_trim(self.content)
 
 
 @dataclass

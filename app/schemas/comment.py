@@ -6,27 +6,18 @@ from app.schemas.user import RelationshipUserResponse, UserResponse
 
 
 class CommentCreateRequest(BaseModel):
-    article_id: int
-    created_at: str
-    comment: str
-    table_name: str
-    user_id: int
+    post_id: int
+    content: str
 
 
 class CommentUpdateRequest(BaseModel):
-    article_id: int
-    created_at: str
-    comment: str
-    table_name: str
-    user_id: int
+    content: str
 
 
 class CommentResponse(BaseModel):
     id: int
-    article_id: int
-    user_id: int
-    text: str
-    table_name: str
+    post_id: int
+    content: str
     created_at: datetime
     updated_at: datetime
     user: RelationshipUserResponse | None = None

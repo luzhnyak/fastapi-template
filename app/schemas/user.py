@@ -23,7 +23,7 @@ class UserUpdateRequest(BaseModel):
 class UserResponse(BaseModel):
     id: int | None = None
     name: str
-    # email: EmailStr | None = None
+    email: EmailStr | None = None
     avatar: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -34,10 +34,3 @@ class UsersListResponse(BaseModel):
     total: int
     page: int
     per_page: int
-
-
-class RelationshipUserResponse(BaseModel):
-    id: int
-    name: str
-    avatar: str
-    is_google_user: bool

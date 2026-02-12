@@ -1,21 +1,48 @@
 from pydantic import BaseModel, ConfigDict
 from typing import List
-
-from app.domain.entities.post import PostStats
-from app.schemas.base_article import BaseArticle, BaseArticleFull
+from datetime import datetime
 
 
-class PostRequest(BaseArticle):
-    pass
+class PostRequest(BaseModel):
+    name: str
+    slug: str
+    content: str
+    image: str | None = None
+    video: str | None = None
+    category_ids: List[int]
+
+    model_config = ConfigDict(from_attributes=True)
 
 
-class PostResponse(BaseArticleFull):
+class Stats(BaseModel):
+    article_id: int
+    comments_count: int
+    views: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class RelationshipResponse(BaseModel):
     id: int
-    user_id: int
-    stats: PostStats
-    path: str = "posts"
-    main_image: str | None
+    name: str
+    slug: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class PostResponse(BaseModel):
+    id: int
+    name: str
+    slug: str
+    content: str
     description: str
+    image: str | None
+    main_image: str | None
+    video: str | None
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+    stats: Stats | None = None
 
     model_config = ConfigDict(from_attributes=True)
 

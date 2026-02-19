@@ -6,6 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import ServerException, UnauthorizedException
 from app.core.jwt import verify_access_token
 
+from app.infrastructure.repositories.sqlalchemy.category import (
+    SQLAlchemyCategoryRepository,
+)
 from app.infrastructure.repositories.sqlalchemy.comment import (
     SQLAlchemyCommentRepository,
 )
@@ -16,6 +19,7 @@ from app.infrastructure.repositories.sqlalchemy.user import SQLAlchemyUserReposi
 from app.schemas.auth import AuthResponse
 from app.services.auth import AuthService
 
+from app.services.category import CategoryService
 from app.services.comment import CommentService
 
 from app.infrastructure.db.database import get_db
@@ -33,6 +37,18 @@ def get_post_repository(
 
 def get_post_service(post_repo=Depends(get_post_repository)) -> PostService:
     return PostService(post_repo)
+
+
+def get_category_repository(
+    session: AsyncSession = Depends(get_db),
+):
+    return SQLAlchemyCategoryRepository(session)
+
+
+def get_category_service(
+    category_repo=Depends(get_category_repository),
+):
+    return CategoryService(category_repo)
 
 
 def get_comment_repository(

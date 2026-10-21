@@ -1,142 +1,98 @@
-# fastapi-template
-FastAPI template
+# FastAPI template
 
-This is a FastAPI application that provides a RESTful API. This project is built with FastAPI and can be easily set up and run locally.
+Простий стартовий REST API на Python 3.11+, FastAPI, SQLAlchemy 2 та SQLite/aiosqlite. Містить користувачів, JWT-авторизацію, пости, категорії та коментарі. Збережено наявні шари: routers → services → repositories → ORM, із dataclass-сутностями та Pydantic-схемами на межі API.
 
-## Requirements
-
-Before you begin, ensure you have met the following requirements:
-
-- Python 3.11+ (It is recommended to use a virtual environment)
-- pip (Python package installer)
-
-## Installation
-
-Follow these steps to install and run the application:
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/luzhnyak/fastapi-template
-cd fastapi-template
-```
-
-### 2. Create and activate a virtual environment
+## Запуск
 
 ```bash
-python -m venv venv
+python -m venv .venv
+source .venv/bin/activate
+# Windows: .venv\Scripts\activate
+python -m pip install -r requirements.txt
+cp .env.sample .env
+# Windows: copy .env.sample .env
+python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Activate the virtual environment:
+Запишіть згенерований ключ у `SECRET_KEY` в `.env`. Ключ обов'язковий, мінімум 32 символи. Для локальної роботи через HTTP встановіть `COOKIE_SECURE=false`. У production через HTTPS залишайте `true`.
 
-On Windows:
-```bash
-venv\Scripts\activate
-```
-
-On macOS/Linux:
-```bash
-source venv/bin/activate
-```
-
-### 3. Install dependencies
-
-Run the following command to install the required Python packages:
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Save dependencies
-
-Run the following command to save the required Python packages:
-```bash
-pip freeze > requirements.txt
-```
-
-### 4. Create a .env file in the project root
-
-Create a `.env` file based on `.env.sample` and update the values as needed.
-
-# 🚀 Run the application
-Once the dependencies are installed, you can run the application:
 ```bash
 python -m app.main
+# Або:
+uvicorn app.main:app --reload
 ```
 
-# Docker
+За замовчуванням: <http://127.0.0.1:8000/docs>. Параметри `HOST`, `PORT`, `RELOAD` застосовуються до `python -m app.main`. Для команди `uvicorn` задавайте відповідні CLI-параметри. У production не використовуйте `--reload`; запускайте Uvicorn за reverse proxy.
 
-This project can be run inside a Docker container.
-
-## 🚀 Running in Docker
-
-### 1. Clone the repository (if needed)
-```bash
-git clone https://github.com/luzhnyak/fastapi-template
-cd fastapi-template
-```
-
-### 2. Run the container
-```bash
-docker-compose up --build
-```
-
-### 2. Stopping the container
-```bash
-docker-compose down
-```
-
-# Interactive API Docs
-
-You can access the interactive API documentation by navigating to http://localhost:8000/docs in your web browser.
-
-# Database Migrations with Alembic
-
-This guide explains how to manage database migrations using Alembic in a Python project.
-
-## Creating a Migration
-
-To generate a new migration based on the changes in your models, run:
+## Адміністратор і права
 
 ```bash
-alembic revision --autogenerate -m "Your migration message"
+python -m app.cli create-admin --name Admin --email admin@example.com
 ```
 
-This will create a new migration script in the `alembic/versions` directory.
+Команда двічі запитує пароль; він не потрапляє в аргументи процесу. Мінімальна довжина — 8 символів. Новий адміністратор створюється транзакційно. Команда не перетворює наявного користувача на адміністратора.
 
-## Applying Migrations
+Публічна реєстрація завжди створює `role=user`, включно з першим користувачем. Адміністратор визначається за `role=admin`, а не за ID. API не дозволяє передавати роль при реєстрації.
 
-To apply all pending migrations and bring your database schema up to date, run:
+- Читання постів, категорій, коментарів і профілів — публічне. Профілі користувачів включають email; перед використанням для приватного сервісу обмежте читання або змініть response-схему.
+- Створення, редагування та видалення постів, категорій і користувачів — тільки адміністратору.
+- Створення коментарів — авторизованому активному користувачу. Автор визначається токеном, а не тілом запиту.
+- Зміна й видалення коментаря — його автору або адміністратору.
+
+## API
+
+| Маршрут | Призначення |
+| --- | --- |
+| `POST /auth/register`, `/auth/login` | Видають access token у JSON, refresh token у HttpOnly cookie |
+| `GET /auth/me` | Access token і профіль поточного користувача |
+| `POST /auth/refresh` | Видає нові токени за refresh cookie |
+| `POST /auth/logout` | Видаляє refresh cookie браузера |
+| `/users/`, `/users/{id}` | Перегляд і адміністративний CRUD користувачів |
+| `/posts/`, `/posts/{id}` | Перегляд і адміністративний CRUD постів |
+| `GET /posts/{slug}/slug` | Пошук поста за slug |
+| `/categories/`, `/categories/{id}` | Перегляд і адміністративний CRUD категорій |
+| `GET /comments/?post_id=1` | Коментарі поста |
+| `POST /comments/`, `/comments/{id}` | Створення, перегляд, редагування та видалення коментарів |
+
+Для захищених запитів: `Authorization: Bearer <access_token>`. Пагінація: `0 <= skip <= 2^63-1`, `1 <= limit <= 100`; ID обмежені діапазоном `1..2^63-1`. Slug поста й категорії унікальний, складається з малих латинських літер, цифр і дефісів. `category_ids` у пості задає повний список категорій; для очищення передайте `[]`.
+
+Невідомий ресурс повертає 404; неправильний токен — 401; брак прав — 403; конфлікт унікальності/зв'язків — 409; неправильні вхідні дані — 422. Деталі SQL не повертаються клієнту.
+
+## Паролі й токени
+
+Нові паролі хешуються Argon2. Перевірка наявних `sha256_crypt`-хешів збережена; після зміни пароля використовується Argon2. Хешування виконується у thread pool. Паролі та refresh token не входять у публічні response-схеми.
+
+JWT містить `sub` (незмінний ID користувача), `exp`, `iat`, `type` та `jti`. Access і refresh токени не взаємозамінні. Для кожного запиту/refresh перевіряється існування та активність користувача. Під час переходу зі старого шаблону користувачам потрібно ввійти повторно.
+
+Refresh cookie: HttpOnly, SameSite=Strict, шлях `/auth`, Secure за замовчуванням. Frontend має надсилати cookie (`credentials: 'include'`); дозволені origins задаються JSON-масивом `CORS_ORIGINS`. SameSite=Strict передбачає frontend та API в межах одного site; для різних site потрібен окремий перегляд cookie/CSRF-політики.
+
+Токени залишаються stateless: logout очищає cookie, але не відкликає вже скопійований токен. Оновлення refresh token не анулює попередній до закінчення його строку. Реєстр сесій, відкликання токенів і rate limiting сюди не додано; за потреби додайте їх перед публічним запуском.
+
+## Google та інші інтеграції
+
+Google-вхід опціональний: заповніть `OAUTH_CLIENT_ID`, `OAUTH_SECRET`, `OAUTH_REDIRECT_URI`. Frontend перевіряє OAuth `state` у callback і передає одноразовий code в `POST /auth/google`. Redirect URI має точно збігатися з налаштуванням Google і URI, використаним для отримання code. Сервер звертається до Google асинхронно з timeout, приймає тільки підтверджений email. Google-акаунт прив’язується до незмінного ID провайдера. Для нового користувача генерується випадковий невідомий пароль. Якщо email уже зайнятий локальною реєстрацією без такого Google-зв’язку, повертається 409: автоматичного об’єднання акаунтів немає. Це запобігає доступу через пароль, який до Google-входу міг задати інший реєстрант. Окремий потік прив’язування наявного локального акаунта не реалізований. За відсутності налаштувань — 503. У тестах зовнішні HTTP-відповіді моделюються локально; живий OAuth-потік потребує власних ключів.
+
+`POST /auth/auth0-login` — старий незавершений endpoint, позначений deprecated і явно повертає 503. Auth0 не ввімкнений. `RedisService` — необов'язкова утиліта: для її використання встановіть `redis`, передайте URL явно та викличте `close()` під час shutdown. Застосунок не потребує Redis.
+
+## База даних
+
+`SQLITE_DB_PATH` задає файл SQLite. Відносні шляхи й `.env` обчислюються від кореня репозиторію. За замовчуванням `INIT_DB=true` створює відсутні таблиці при запуску. Це **не міграція**: `create_all` не змінює наявні таблиці.
+
+Зв'язки мають справжні FK, SQLite foreign keys увімкнені. Видалення користувача видаляє його пости й коментарі; видалення поста — його коментарі, статистику та зв'язки з категоріями. Видалення категорії залишає пости. Кількість коментарів обчислюється з фактичних записів і не розходиться після каскадних видалень.
+
+Усі операції одного HTTP-запиту використовують спільну транзакцію: commit до відправлення відповіді, rollback при помилці. Зв'язки, потрібні маперам, завантажуються через selectin; engine закривається в lifespan.
+
+Схема виправлена порівняно зі старим шаблоном (FK, nullable-поля, унікальні slug, автоінкремент ID користувача, унікальний Google ID, обчислюваний лічильник коментарів). Для нового проєкту використайте нову базу. Для наявної — спершу резервна копія й окрема міграція зі збереженням даних. Alembic і Docker-конфігурації в репозиторії відсутні; інструкцій для неіснуючих конфігурацій немає.
+
+## Перевірки
 
 ```bash
-alembic upgrade head
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+ruff check .
+ruff format --check .
 ```
 
-## Rolling Back a Migration
+Тести використовують окремий тимчасовий файл SQLite для кожного сценарію й не змінюють робочу базу. Перевіряють запуск, CRUD, транзакції, FK/каскади, права доступу, токени, парольну валідацію, пагінацію та необов'язкові інтеграції. GitHub Actions запускає перевірки на Python 3.11–3.13.
 
-To revert the last migration, use:
-
-```bash
-alembic downgrade -1
-```
-
-Or specify a particular revision:
-
-```bash
-alembic downgrade <revision_id>
-```
-
-## Checking Current Migration Status
-
-To see the current state of the migrations, run:
-
-```bash
-alembic current
-```
-
-## Viewing Migration History
-
-To check the migration history:
-
-```bash
-alembic history
-```
-
+Під час адаптації старих клієнтів: коментарі тепер використовують `post_id`/`content` замість залишків `table_name`/`article_id`/`comment`; поле статистики називається `post_id`; створення ресурсу повертає 201. Наявні основні URL авторизації, користувачів і постів збережено.

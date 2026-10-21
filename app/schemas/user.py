@@ -1,36 +1,35 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
-from typing import List
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class SignUpRequest(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=200)
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=1024)
 
 
 class SignInRequest(BaseModel):
     email: EmailStr
-    password: str
+    password: str = Field(min_length=1, max_length=1024)
 
 
 class UserUpdateRequest(BaseModel):
-    name: str | None = None
-    password: str | None = None
-
-    model_config = ConfigDict(from_attributes=True)
+    name: str | None = Field(default=None, min_length=1, max_length=200)
+    password: str | None = Field(default=None, min_length=8, max_length=1024)
 
 
-class UserResponse(BaseModel):
-    id: int | None = None
+class RelationshipUserResponse(BaseModel):
+    id: int
     name: str
-    email: EmailStr | None = None
     avatar: str | None = None
-
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserResponse(RelationshipUserResponse):
+    email: EmailStr
 
 
 class UsersListResponse(BaseModel):
-    items: List[UserResponse]
+    items: list[UserResponse]
     total: int
     page: int
     per_page: int

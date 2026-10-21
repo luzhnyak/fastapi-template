@@ -1,6 +1,6 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
-from app.schemas.user import UserResponse
+from app.schemas.user import SignInRequest, SignUpRequest, UserResponse
 
 
 class TokenResponse(BaseModel):
@@ -8,33 +8,23 @@ class TokenResponse(BaseModel):
     token_type: str = "Bearer"
 
 
-class Token(BaseModel):
-    access_token: str
+class Token(TokenResponse):
     refresh_token: str
-
-
-class TokenData(BaseModel):
-    email: str
 
 
 class Auth0Token(BaseModel):
     token: str
 
 
-class RegisterRequest(BaseModel):
-    name: str
-    email: EmailStr
-    password: str
+class RegisterRequest(SignUpRequest):
+    pass
 
 
-class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str
+class LoginRequest(SignInRequest):
+    pass
 
 
-class AuthResponse(BaseModel):
-    access_token: str
-    token_type: str = "Bearer"
+class AuthResponse(TokenResponse):
     user: UserResponse
 
 

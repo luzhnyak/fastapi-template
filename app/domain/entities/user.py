@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
 
 from app.utils.avatar import gavatar
 
@@ -12,7 +11,9 @@ class User:
     email: str
     password: str | None = None
     avatar: str | None = None
+    google_id: str | None = None
     role: str = "user"
+    is_active: bool = True
     lastvisit_date: str | None = None
     created_at: datetime
     updated_at: datetime
@@ -26,7 +27,7 @@ class User:
 
 @dataclass
 class UserList:
-    items: List[User]
+    items: list[User]
     total: int
     page: int
     per_page: int

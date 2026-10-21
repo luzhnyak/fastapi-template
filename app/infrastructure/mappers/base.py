@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
 
 Entity = TypeVar("Entity")
 Model = TypeVar("Model")

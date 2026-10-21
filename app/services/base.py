@@ -1,9 +1,8 @@
 from app.core.exceptions import ForbiddenException
+from app.domain.entities.user import User
 
 
 class BaseService:
-    __abstract__ = True
-
-    def _check_permission(self, current_user_id: int) -> None:
-        if current_user_id != 1:
-            raise ForbiddenException("You are not authorized to perform this action")
+    def _check_permission(self, current_user: User) -> None:
+        if not current_user.is_active or current_user.role != "admin":
+            raise ForbiddenException("Administrator access required")

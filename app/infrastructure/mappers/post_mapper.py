@@ -1,6 +1,6 @@
-from app.domain.entities.post import Post
-from app.infrastructure.mappers.base import BaseMapper
 from app.domain.entities.post import Post, PostStats
+from app.infrastructure.mappers.base import BaseMapper
+from app.infrastructure.mappers.category_mapper import CategoryMapper
 from app.infrastructure.models.post import PostModel
 
 
@@ -12,34 +12,22 @@ class PostMapper(BaseMapper[PostModel, Post]):
             slug=model.slug,
             content=model.content,
             image=model.image,
-            thumbnail=model.thumbnail,
             video=model.video,
-            ena=model.ena,
-            is_gallery=model.is_gallery,
+            user_id=model.user_id,
             created_at=model.created_at,
             updated_at=model.updated_at,
-            user_id=model.user_id,
-            categories=model.categories,
-            stats=(
-                PostStats(
-                    article_id=model.stats.article_id,
-                    comments_count=model.stats.comments_count,
-                    views=model.stats.views,
-                )
-                if model.stats
-                else None
-            ),
+            categories=[CategoryMapper().to_entity(category) for category in model.categories],
+            stats=PostStats(
+                post_id=model.stats.post_id,
+                comments_count=model.stats.comments_count,
+                views=model.stats.views,
+            )
+            if model.stats
+            else None,
         )
 
     def to_model_dict(self, entity: Post) -> dict:
         return {
-            "name": entity.name,
-            "slug": entity.slug,
-            "content": entity.content,
-            "image": entity.image,
-            "thumbnail": entity.thumbnail,
-            "video": entity.video,
-            "ena": entity.ena,
-            "is_gallery": entity.is_gallery,
-            "user_id": entity.user_id,
+            key: getattr(entity, key)
+            for key in ("name", "slug", "content", "image", "video", "user_id")
         }

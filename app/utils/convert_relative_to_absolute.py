@@ -1,4 +1,5 @@
 import re
+
 from app.core.config import settings
 
 BASE_URL = settings.app.BASE_URL

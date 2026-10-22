@@ -1,33 +1,49 @@
-import requests
+import httpx
+from fastapi import HTTPException
+
 from app.core.config import settings
+from app.core.exceptions import UnauthorizedException
 
 
-def get_user_info(code, redirect_uri):
-
-    session = requests.Session()
-    # session.headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; rv:40.0) Gecko/20100101 Firefox/40.0'}
-    session.headers = {"Content-Type": "application/x-www-form-urlencoded"}
-    # session.headers = {'Host:': 'www.googleapis.com'}
-    # POST /oauth2/v4/token HTTP/1.1
-
-    url = "https://www.googleapis.com/oauth2/v4/token"
-
-    params = {
-        "client_id": settings.app.OAUTH_CLIENT_ID,
-        "client_secret": settings.app.OAUTH_SECRET,
-        "redirect_uri": redirect_uri,
-        "grant_type": "authorization_code",
-        "code": code,
-    }
-
-    response = session.post(url, params=params)
-
-    url = "https://www.googleapis.com/oauth2/v1/userinfo"
-
-    params = {
-        "access_token": response.json().get("access_token"),
-        "fields": "id,name,email",
-    }
-
-    response = requests.get(url, params=params)
-    return response.json()
+async def get_user_info(code: str) -> dict:
+    config = settings.app
+    if not all((config.OAUTH_CLIENT_ID, config.OAUTH_SECRET, config.OAUTH_REDIRECT_URI)):
+        raise HTTPException(status_code=503, detail="Google login is not configured")
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            response = await client.post(
+                "https://oauth2.googleapis.com/token",
+                data={
+                    "client_id": config.OAUTH_CLIENT_ID,
+                    "client_secret": config.OAUTH_SECRET,
+                    "redirect_uri": config.OAUTH_REDIRECT_URI,
+                    "grant_type": "authorization_code",
+                    "code": code,
+                },
+            )
+            response.raise_for_status()
+            token_data = response.json()
+            token = token_data.get("access_token") if isinstance(token_data, dict) else None
+            if not token:
+                raise UnauthorizedException("Invalid Google authorization code")
+            response = await client.get(
+                "https://www.googleapis.com/oauth2/v2/userinfo",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            response.raise_for_status()
+            info = response.json()
+            if (
+                not isinstance(info, dict)
+                or info.get("verified_email") is not True
+                or not info.get("email")
+                or not isinstance(info.get("id"), str)
+                or not info["id"]
+            ):
+                raise UnauthorizedException("A verified Google email is required")
+            return info
+    except httpx.HTTPStatusError as exc:
+        if exc.response.status_code < 500:
+            raise UnauthorizedException("Invalid Google authorization") from None
+        raise HTTPException(status_code=502, detail="Google login is unavailable") from None
+    except (httpx.RequestError, ValueError):
+        raise HTTPException(status_code=502, detail="Google login is unavailable") from None

@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Depends, status
-
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.dependencies import get_current_user, get_post_service
+from app.domain.entities.user import User
+from app.schemas.common import MAX_SQLITE_INTEGER, EntityId
 from app.schemas.post import PostListResponse, PostRequest, PostResponse
-from app.schemas.user import UserResponse
 from app.services.post import PostService
-
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
@@ -14,50 +13,45 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 async def create_post(
     data: PostRequest,
     service: PostService = Depends(get_post_service),
-    current_user: UserResponse = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    post = await service.create_post(data, current_user.id)
-    return post
+    return await service.create_post(data, current_user)
 
 
 @router.get("/", response_model=PostListResponse)
 async def get_posts(
-    skip: int = 0, limit: int = 12, service: PostService = Depends(get_post_service)
+    skip: int = Query(0, ge=0, le=MAX_SQLITE_INTEGER),
+    limit: int = Query(12, ge=1, le=100),
+    service: PostService = Depends(get_post_service),
 ):
     return await service.get_posts(skip, limit)
 
 
 @router.get("/{post_id}", response_model=PostResponse)
-async def get_post_by_id(
-    post_id: int, service: PostService = Depends(get_post_service)
-):
-    post = await service.get_post_by_id(post_id)
-    return post
+async def get_post_by_id(post_id: EntityId, service: PostService = Depends(get_post_service)):
+    return await service.get_post_by_id_or_404(post_id)
 
 
 @router.get("/{slug}/slug", response_model=PostResponse)
 async def get_post_by_slug(slug: str, service: PostService = Depends(get_post_service)):
-    post = await service.get_post_by_slug_or_404(slug)
-    return post
+    return await service.get_post_by_slug_or_404(slug)
 
 
 @router.put("/{post_id}", response_model=PostResponse)
 async def update_post(
-    id: int,
+    post_id: EntityId,
     data: PostRequest,
     service: PostService = Depends(get_post_service),
-    current_user: UserResponse = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    updated_post = await service.update_post(id, data, current_user.id)
-
-    return updated_post
+    return await service.update_post(post_id, data, current_user)
 
 
 @router.delete("/{post_id}")
 async def delete_post(
-    post_id: int,
+    post_id: EntityId,
     service: PostService = Depends(get_post_service),
-    current_user: UserResponse = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
-    deleted_post = await service.delete_post(post_id, current_user.id)
-    return {"detail": f"Post {deleted_post.name} deleted"}
+    post = await service.delete_post(post_id, current_user)
+    return {"detail": f"Post {post.name} deleted"}

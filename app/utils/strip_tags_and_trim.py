@@ -1,5 +1,5 @@
-import re
 import html as html_lib
+import re
 
 
 def strip_tags_and_trim(html: str, max_length: int = 150) -> str:
@@ -13,6 +13,4 @@ def strip_tags_and_trim(html: str, max_length: int = 150) -> str:
     clean_text = re.sub(r"\s+", " ", clean_text).strip()
 
     # Обрізаємо текст і додаємо "..." якщо потрібно
-    return (
-        clean_text[:max_length] + "..." if len(clean_text) > max_length else clean_text
-    )
+    return clean_text[:max_length] + "..." if len(clean_text) > max_length else clean_text

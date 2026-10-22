@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from datetime import datetime
-from typing import List
 
 from app.domain.entities.user import User
 
@@ -18,7 +17,7 @@ class Comment:
 
 @dataclass
 class CommentList:
-    items: List[Comment]
+    items: list[Comment]
     total: int
     page: int
     per_page: int

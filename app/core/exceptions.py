@@ -23,14 +23,16 @@ class BadRequestException(HTTPException):
 
 class UnauthorizedException(HTTPException):
     def __init__(self, detail="Unauthorized"):
-        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+        super().__init__(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=detail,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 class ValidationException(HTTPException):
     def __init__(self, detail="Invalid data"):
-        super().__init__(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=detail
-        )
+        super().__init__(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=detail)
 
 
 class DatabaseException(HTTPException):

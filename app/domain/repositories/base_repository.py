@@ -1,27 +1,36 @@
 from abc import ABC, abstractmethod
-from typing import Generic, Optional, List, TypeVar
-
+from typing import Generic, TypeVar
 
 Entity = TypeVar("Entity")
 
 
-class BaseRepository(Generic[Entity], ABC):
+class BaseRepository(ABC, Generic[Entity]):
     @abstractmethod
-    async def find_one(self, **filter_by) -> Optional[Entity]:
+    async def add_one(self, data: dict) -> Entity:
         pass
 
     @abstractmethod
-    async def find_one_with_stats(self, **filter_by) -> Optional[Entity]:
+    async def edit_one(self, id: int, data: dict) -> Entity:
         pass
 
     @abstractmethod
-    async def find_many(self, skip: int, limit: int, **filter_by) -> List[Entity]:
+    async def delete_one(self, id: int) -> Entity:
         pass
 
     @abstractmethod
-    async def find_many_with_stats(
-        self, skip: int, limit: int, **filter_by
-    ) -> List[Entity]:
+    async def find_one(self, **filter_by) -> Entity | None:
+        pass
+
+    @abstractmethod
+    async def find_one_with_stats(self, **filter_by) -> Entity | None:
+        pass
+
+    @abstractmethod
+    async def find_many(self, skip: int, limit: int, **filter_by) -> list[Entity]:
+        pass
+
+    @abstractmethod
+    async def find_many_with_stats(self, skip: int, limit: int, **filter_by) -> list[Entity]:
         pass
 
     @abstractmethod

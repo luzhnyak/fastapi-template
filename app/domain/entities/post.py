@@ -1,13 +1,12 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional
 
 from app.utils.strip_tags_and_trim import strip_tags_and_trim
 
 
 @dataclass
 class PostStats:
-    article_id: int
+    post_id: int
     comments_count: int
     views: int
 
@@ -19,6 +18,14 @@ class Category:
     name: str
 
 
+@dataclass
+class CategoryList:
+    items: list[Category]
+    total: int
+    page: int
+    per_page: int
+
+
 @dataclass(kw_only=True)
 class Post:
     id: int
@@ -27,21 +34,24 @@ class Post:
     content: str
     created_at: datetime
     updated_at: datetime
-    image: Optional[str] = None
-    video: Optional[str] = None
-    user_id: int | None = None
-
-    stats: PostStats
-    categories: List[Category]
+    user_id: int
+    image: str | None = None
+    video: str | None = None
+    stats: PostStats | None = None
+    categories: list[Category] = field(default_factory=list)
 
     @property
     def description(self) -> str:
         return strip_tags_and_trim(self.content)
 
+    @property
+    def main_image(self) -> str | None:
+        return self.image
+
 
 @dataclass
 class PostList:
-    items: List[Post]
+    items: list[Post]
     total: int
     page: int
     per_page: int

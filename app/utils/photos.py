@@ -1,4 +1,5 @@
 import os
+
 from app.core.config import settings
 
 IMAGE_FOLDER = settings.app.IMAGE_FOLDER
@@ -43,8 +44,8 @@ def get_list_photos(path: str, id: int, video: str):
 
         list_photo.append(
             {
-                "resize": f"/static/img/posts/resize/goldfishnet.jpg",
-                "thumbnail": f"/static/img/posts/thumbnail/goldfishnet.jpg",
+                "resize": "/static/img/posts/resize/goldfishnet.jpg",
+                "thumbnail": "/static/img/posts/thumbnail/goldfishnet.jpg",
             }
         )
         return list_photo
@@ -98,7 +99,7 @@ def get_list_photos_api(path: str, id: int, video: str):
         )
         return list_photo
 
-    except Exception as e:
+    except Exception:
         # tg.sendMessage(
         #     "346777365", "GoldFishNet Error in get_images places: " + str(e), ""
         # )
